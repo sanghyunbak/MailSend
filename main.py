@@ -7,6 +7,7 @@ import os
 import smtplib
 import traceback
 from email import encoders
+from email.header import Header
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -14,19 +15,21 @@ from email.mime.text import MIMEText
 from termcolor import colored
 
 
-def sendmail(password):
+def set_smtp_connection(mail_server: str, port: int, id: str, password: str):
     print(colored(f"{type(password)}", "green"))
     print(colored(f"password: {password}", "green"))
-    s = smtplib.SMTP('smtp.gmail.com', 587)
+    s = smtplib.SMTP(mail_server, port)
     s.starttls()
-    s.login('sanghyunbak@gmail.com', password)
-    msg = MIMEText('내용 : 본문내용 테스트입니다.')
-    msg['Subject'] = '제목 : 메일 보내기 테스트입니다.'
-    message = MIMEMultipart("mixed")
-    message.set_charset('utf-8')
-    message['From'] = "sanghyunbak@gmail.com"
-    message['To'] = "sanghyunbak@gmail.com"
+    s.login(id, password)
+    return s
 
+
+def sendmail(password):
+    s = set_smtp_connection(mail_server='smtp.gmail.com', port=587, id='sanghyunbak@gmail.com', password=password)
+    msg = MIMEText('내용 : 본문내용 테스트입니다.')
+    message = MIMEMultipart("mixed")
+    message['Subject'] = Header(s='파일첨부 메일송신 테스트', charset='utf-8')
+    message.set_charset('utf-8')
     message.attach(msg)
 
     attach_binary = MIMEBase("application", "octet-stream")
@@ -42,7 +45,7 @@ def sendmail(password):
         message.attach(attach_binary)
     except Exception as e:
         print(colored(f"{traceback.format_exc()}", "red"))
-    s.sendmail("sanghyunbak@gmail.com", "sanghyun.bak@sk.com", message.as_string())
+    s.sendmail("sanghyunbak@gmail.com", "sanghyunbak@gmail.com", message.as_string())
     s.quit()
 
 
